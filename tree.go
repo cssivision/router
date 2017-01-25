@@ -5,26 +5,26 @@ import (
 )
 
 type node struct {
-	pattern  string
 	children map[string]*node
 	handlers map[string]Handle
 }
 
-func (n *node) insert(method, pattern string, handler Handle) {
+func (n *node) insert(method, pattern string, handler Handle, ignore bool) {
+	if ignore {
+		pattern = strings.ToLower(pattern)
+	}
+
 	pattern = strings.Trim(pattern, "/")
-	var frags []string
 	p := n
 
-	frags = strings.Split(pattern, "/")
+	frags := strings.Split(pattern, "/")
 	for _, frag := range frags {
 		if p.children == nil {
 			p.children = make(map[string]*node)
 		}
 
 		if p.children[frag] == nil {
-			p.children[frag] = &node{
-				pattern: frag,
-			}
+			p.children[frag] = new(node)
 		}
 
 		p = p.children[frag]
@@ -35,13 +35,17 @@ func (n *node) insert(method, pattern string, handler Handle) {
 	}
 
 	if p.handlers[method] != nil {
-		panic("handle exist")
+		panic("conflicts with existing " + pattern + " method " + method)
 	}
 
 	p.handlers[method] = handler
 }
 
-func (n *node) find(path, method string) (Handle, Params) {
+func (n *node) find(path, method string, ignore bool) (Handle, Params) {
+	if ignore {
+		path = strings.ToLower(path)
+	}
+
 	path = strings.TrimPrefix(path, "/")
 	var frags []string
 	p := n
