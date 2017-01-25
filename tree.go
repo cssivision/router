@@ -1,79 +1,70 @@
 package router
 
 import (
-    "strings"
+	"strings"
 )
 
 type node struct {
-    pattern  string
-    children map[string]*node
-    handle   map[string]Handle
+	pattern  string
+	children map[string]*node
+	handlers map[string]Handle
 }
 
-func (n *node) insert(method, pattern string, handle Handle) {
-    pattern = strings.Trim(pattern, "/")
-    var frags []string
-    p := n
-    if len(pattern) == 0 {
-        frags = []string{}
-    } else {
-       frags = strings.Split(pattern, "/")
-    }
+func (n *node) insert(method, pattern string, handler Handle) {
+	pattern = strings.Trim(pattern, "/")
+	var frags []string
+	p := n
 
-    for _, frag := range frags {
-        if p.children == nil {
-            p.children = make(map[string]*node)
-        }
+	frags = strings.Split(pattern, "/")
+	for _, frag := range frags {
+		if p.children == nil {
+			p.children = make(map[string]*node)
+		}
 
-        if p.children[frag] == nil {
-            p.children[frag] = &node{
-                pattern: frag,
-            }
-        }
+		if p.children[frag] == nil {
+			p.children[frag] = &node{
+				pattern: frag,
+			}
+		}
 
-        p = p.children[frag]
-    }
+		p = p.children[frag]
+	}
 
-    if p.handle == nil {
-        p.handle = make(map[string]Handle)
-    }
+	if p.handlers == nil {
+		p.handlers = make(map[string]Handle)
+	}
 
-    if p.handle[method] != nil {
-        panic("handle exist")
-    }
+	if p.handlers[method] != nil {
+		panic("handle exist")
+	}
 
-    p.handle[method] = handle
+	p.handlers[method] = handler
 }
 
-func (n *node) find(path, method string) (handle Handle, ps Params) {
-    path = strings.Trim(path, "/")
-    var frags []string
-    p := n
-    if len(path) == 0 {
-        frags = []string{}
-    } else {
-       frags = strings.Split(path, "/")
-    }
+func (n *node) find(path, method string) (Handle, Params) {
+	path = strings.TrimPrefix(path, "/")
+	var frags []string
+	p := n
+	frags = strings.Split(path, "/")
+	for _, frag := range frags {
+		if p.children == nil {
+			return nil, Params{}
+		}
 
-    for _, frag := range frags {
-        if p.children == nil {
-            return nil, Params{}
-        }
+		if p.children[frag] == nil {
+			return nil, Params{}
+		}
 
-        if p.children[frag] == nil {
-            return nil, Params{}
-        }
+		p = p.children[frag]
+	}
 
-        p = p.children[frag]
-    }
+	if p.handlers == nil {
+		return nil, Params{}
+	}
 
-    if p.handle == nil {
-        return nil, Params{}
-    }
+	if p.handlers[method] == nil {
+		return nil, Params{}
+	}
 
-    if p.handle[method] == nil {
-        return nil, Params{}
-    }
-
-    return p.handle[method], Params{}
+	return p.handlers[method], Params{}
 }
