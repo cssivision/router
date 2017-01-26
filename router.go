@@ -50,6 +50,14 @@ func (r *Router) Trace(pattern string, handler Handle) {
 	r.Handle(http.MethodTrace, pattern, handler)
 }
 
+func (r *Router) Head(pattern string, handler Handle) {
+    r.Handle(http.MethodHead, pattern, handler)
+}
+
+func (r *Router) Patch(pattern string, handler Handle) {
+    r.Handle(http.MethodPatch, pattern, handler)
+}
+
 func (r *Router) Handle(method, pattern string, handler Handle) {
 	if pattern[0] != '/' {
 		panic("path must begin with '/' in path '" + pattern + "'")
