@@ -20,24 +20,24 @@ import (
 func main() {
     r := router.New()
     r.Get("/", func(w http.ResponseWriter, r *http.Request, ps router.Params){
-        w.Write([]byte("path /"))
+        w.Write([]byte("path /\n"))
     })
 
     r.Get("/a", func(w http.ResponseWriter, r *http.Request, ps router.Params){
-        w.Write([]byte("path /a"))
+        w.Write([]byte("path /a\n"))
     })
 
     // path `/a` take precedence over `/:name`
     r.Get("/:name", func(w http.ResponseWriter, r *http.Request, ps router.Params){
-        w.Write([]byte("path /a/b"))
+        w.Write([]byte("path: /a/b, " + "name: " + ps["name"] + "\n"))
     })
 
     r.Get("/a/b", func(w http.ResponseWriter, r *http.Request, ps router.Params){
-        w.Write([]byte("path /a/b"))
+        w.Write([]byte("path /a/b\n"))
     })
 
-    r.Get("/:name", func(w http.ResponseWriter, r *http.Request, ps router.Params){
-        w.Write([]byte("path /a/b"))
+    r.Get("/file/*filepath", func(w http.ResponseWriter, r *http.Request, ps router.Params){
+        w.Write([]byte("path: /a/b, " + "filepath: " + ps["filepath"] + "\n"))
     })
 
     http.ListenAndServe(":8080", r)
