@@ -12,15 +12,15 @@ type Router struct {
 }
 
 type Handle func(http.ResponseWriter, *http.Request, Params)
-type Param struct {
-	Key, Value string
-}
 
-type Params []Param
+type Params map[string]string
 
 func New() *Router {
 	return &Router{
-		tree:                  new(node),
+		tree: &node{
+			children: make(map[string]*node),
+			handlers: make(map[string]Handle),
+		},
 		IgnoreCase:            true,
 		TrailingSlashRedirect: true,
 	}
@@ -42,23 +42,34 @@ func (r *Router) Delete(pattern string, handler Handle) {
 	r.Handle(http.MethodDelete, pattern, handler)
 }
 
+func (r *Router) Options(pattern string, handler Handle) {
+	r.Handle(http.MethodOptions, pattern, handler)
+}
+
+func (r *Router) Trace(pattern string, handler Handle) {
+	r.Handle(http.MethodTrace, pattern, handler)
+}
+
 func (r *Router) Handle(method, pattern string, handler Handle) {
 	if pattern[0] != '/' {
 		panic("path must begin with '/' in path '" + pattern + "'")
 	}
 
 	if r.tree == nil {
-		r.tree = new(node)
+		r.tree = &node{
+			children: make(map[string]*node),
+			handlers: make(map[string]Handle),
+		}
 	}
 
 	r.tree.insert(method, pattern, handler, r.IgnoreCase)
 }
 
 func (r *Router) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	handle, _ := r.tree.find(req.URL.String(), req.Method, r.IgnoreCase)
+	handle, ps, tsr := r.tree.find(req.URL.String(), req.Method, r.IgnoreCase, r.TrailingSlashRedirect)
 
 	if handle != nil {
-		handle(rw, req, Params{})
+		handle(rw, req, ps)
 		return
 	}
 
@@ -67,13 +78,11 @@ func (r *Router) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	if r.TrailingSlashRedirect {
 		if len(path) > 1 && path[len(path)-1] == '/' {
 			req.URL.Path = path[:len(path)-1]
-			handle, _ = r.tree.find(req.URL.String(), req.Method, r.IgnoreCase)
 		} else {
 			req.URL.Path = path + "/"
-			handle, _ = r.tree.find(req.URL.String(), req.Method, r.IgnoreCase)
 		}
 
-		if handle != nil {
+		if tsr {
 			http.Redirect(rw, req, req.URL.String(), http.StatusMovedPermanently)
 			return
 		}
