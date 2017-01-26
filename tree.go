@@ -20,10 +20,6 @@ type node struct {
 	handlers       map[string]Handle
 }
 
-func (n *node) addHandler(method string, handler Handle) {
-
-}
-
 func (n *node) insert(method, pattern string, handler Handle, ignore bool) {
 	if ignore {
 		pattern = strings.ToLower(pattern)
