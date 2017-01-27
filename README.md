@@ -1,5 +1,4 @@
-# Router
-
+# Introduction
 Router is a minimalist HTTP request router for [Go](https://golang.org/).
 
 # Installation
