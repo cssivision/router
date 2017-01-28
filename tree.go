@@ -20,14 +20,11 @@ type node struct {
 	handlers       map[string]Handle
 }
 
-func (n *node) insert(method, pattern string, handler Handle, ignore bool) {
-	if ignore {
-		pattern = strings.ToLower(pattern)
-	}
+func (n *node) insert(pattern string) *node {
 	pattern = strings.TrimPrefix(pattern, "/")
+	frags := strings.Split(pattern, "/")
 
 	p := n
-	frags := strings.Split(pattern, "/")
 	for index, frag := range frags {
 
 		if p.children[frag] != nil {
@@ -78,39 +75,21 @@ func (n *node) insert(method, pattern string, handler Handle, ignore bool) {
 		}
 	}
 
-	if p.handlers[method] != nil {
-		panic("conflicts with existing " + pattern + ", method " + method)
-	}
-
-	p.handlers[method] = handler
 	p.pattern = pattern
+	return p
 }
 
-func printTree(root *node) {
-	if root == nil {
-		return
+func (n *node) addHandle(method string, handler Handle) {
+	if n.handlers[method] != nil {
+		panic("pattern: " + n.pattern + ", method: " + method  + ", conflicts with existing route")
 	}
 
-	if len(root.handlers) > 0 {
-		fmt.Println("pattern: ", root.pattern)
-	}
-
-	for _, v := range root.children {
-		printTree(v)
-	}
-
-	if root.parameterChild != nil {
-		printTree(root.parameterChild)
-	}
+	n.handlers[method] = handler
 }
 
-func (n *node) find(path, method string, ignoreCase bool, trailingSlashRedirect bool) (Handle, Params, bool) {
+func (n *node) find(path, method string) (Handle, Params, bool) {
 	if path == "" || path[0] != '/' {
 		panic(fmt.Errorf(`path must start with "/": "%s"`, path))
-	}
-
-	if ignoreCase {
-		path = strings.ToLower(path)
 	}
 
 	path = strings.TrimPrefix(path, "/")
@@ -126,7 +105,7 @@ func (n *node) find(path, method string, ignoreCase bool, trailingSlashRedirect 
 
 		if nn == nil {
 			// TrailingSlashRedirect: /a/b/ -> /a/b
-			if trailingSlashRedirect && p.endpoint && index == len(frags)-1 && frag == "" {
+			if p.endpoint && index == len(frags)-1 && frag == "" {
 				tsr = true
 			}
 			return nil, matchedParams, tsr
@@ -149,7 +128,7 @@ func (n *node) find(path, method string, ignoreCase bool, trailingSlashRedirect 
 		}
 	}
 
-	if trailingSlashRedirect && p.children[""] != nil {
+	if p.children[""] != nil {
 		// TrailingSlashRedirect: /a/b -> /a/b/
 		tsr = true
 	}

@@ -2,6 +2,7 @@ package router
 
 import (
 	"net/http"
+	"strings"
 )
 
 type Router struct {
@@ -70,11 +71,19 @@ func (r *Router) Handle(method, pattern string, handler Handle) {
 		}
 	}
 
-	r.tree.insert(method, pattern, handler, r.IgnoreCase)
+	if r.IgnoreCase {
+		pattern = strings.ToLower(pattern)
+	}
+	r.tree.insert(pattern).addHandle(method, handler)
 }
 
 func (r *Router) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	handle, ps, tsr := r.tree.find(req.URL.String(), req.Method, r.IgnoreCase, r.TrailingSlashRedirect)
+	var pattern string
+	if r.IgnoreCase {
+		pattern = strings.ToLower(req.URL.String())
+	}
+
+	handle, ps, tsr := r.tree.find(pattern, req.Method)
 
 	if handle != nil {
 		handle(rw, req, ps)
@@ -91,7 +100,8 @@ func (r *Router) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		}
 
 		if tsr {
-			http.Redirect(rw, req, req.URL.String(), http.StatusMovedPermanently)
+			pattern = strings.ToLower(req.URL.String())
+			http.Redirect(rw, req, pattern, http.StatusMovedPermanently)
 			return
 		}
 	}
