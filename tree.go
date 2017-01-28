@@ -85,7 +85,7 @@ func (n *node) insert(pattern string) *node {
 
 func (n *node) addHandle(method string, handler Handle) {
 	if n.handlers[method] != nil {
-		panic("pattern: " + n.pattern + ", method: " + method  + ", conflicts with existing route")
+		panic("pattern: " + n.pattern + ", method: " + method + ", conflicts with existing route")
 	}
 
 	n.handlers[method] = handler

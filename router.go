@@ -52,11 +52,11 @@ func (r *Router) Trace(pattern string, handler Handle) {
 }
 
 func (r *Router) Head(pattern string, handler Handle) {
-    r.Handle(http.MethodHead, pattern, handler)
+	r.Handle(http.MethodHead, pattern, handler)
 }
 
 func (r *Router) Patch(pattern string, handler Handle) {
-    r.Handle(http.MethodPatch, pattern, handler)
+	r.Handle(http.MethodPatch, pattern, handler)
 }
 
 func (r *Router) Handle(method, pattern string, handler Handle) {
