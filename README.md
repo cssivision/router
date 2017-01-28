@@ -42,9 +42,3 @@ func main() {
     http.ListenAndServe(":8080", r)
 }
 ```
-
-# TODO
-
-* add test
-* add code comment
-

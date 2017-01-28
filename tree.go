@@ -21,6 +21,10 @@ type node struct {
 }
 
 func (n *node) insert(pattern string) *node {
+	if strings.Contains(pattern, "//") {
+		panic(fmt.Errorf(`must not contain multi-slash: "%s"`, pattern))
+	}
+
 	pattern = strings.TrimPrefix(pattern, "/")
 	frags := strings.Split(pattern, "/")
 
@@ -92,11 +96,12 @@ func (n *node) find(path, method string) (Handle, Params, bool) {
 		panic(fmt.Errorf(`path must start with "/": "%s"`, path))
 	}
 
-	path = strings.TrimPrefix(path, "/")
 	var tsr bool
 	var matchedParams map[string]string
-	p := n
+	path = strings.TrimPrefix(path, "/")
 	frags := strings.Split(path, "/")
+
+	p := n
 	for index, frag := range frags {
 		nn := p.children[frag]
 		if nn == nil {
