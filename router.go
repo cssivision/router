@@ -83,15 +83,14 @@ func (r *Router) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		pattern = strings.ToLower(req.URL.String())
 	}
 
-	handle, ps, tsr := r.tree.find(pattern, req.Method)
-
+	n, ps, tsr := r.tree.find(pattern)
+	handle := n.handlers[req.Method]
 	if handle != nil {
 		handle(rw, req, ps)
 		return
 	}
 
 	path := req.URL.Path
-
 	if r.TrailingSlashRedirect {
 		if len(path) > 1 && path[len(path)-1] == '/' {
 			req.URL.Path = path[:len(path)-1]

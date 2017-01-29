@@ -46,7 +46,7 @@ func (n *node) insert(pattern string) *node {
 		} else if frag[0] == '*' || frag[0] == ':' {
 			name := frag[1:]
 			if !nameRegexp.MatchString(name) {
-				panic(fmt.Sprintf(`invalid named parameter: "%s"`, name))
+				panic(fmt.Sprintf(`invalid named parameter: "%s"`, pattern))
 			}
 			nn.name = name
 
@@ -56,7 +56,7 @@ func (n *node) insert(pattern string) *node {
 
 			if child := p.parameterChild; child != nil {
 				if child.name != name || child.wildcard != nn.wildcard {
-					panic(fmt.Sprintf(`invalid named parameter: "%s"`, name))
+					panic(fmt.Sprintf(`invalid named parameter: "%s"`, pattern))
 				}
 				p = child
 				continue
@@ -79,7 +79,7 @@ func (n *node) insert(pattern string) *node {
 		}
 	}
 
-	p.pattern = pattern
+	p.pattern = "/" + pattern
 	return p
 }
 
@@ -91,7 +91,7 @@ func (n *node) addHandle(method string, handler Handle) {
 	n.handlers[method] = handler
 }
 
-func (n *node) find(path, method string) (Handle, Params, bool) {
+func (n *node) find(path string) (*node, Params, bool) {
 	if path == "" || path[0] != '/' {
 		panic(fmt.Errorf(`path must start with "/": "%s"`, path))
 	}
@@ -113,7 +113,7 @@ func (n *node) find(path, method string) (Handle, Params, bool) {
 			if p.endpoint && index == len(frags)-1 && frag == "" {
 				tsr = true
 			}
-			return nil, matchedParams, tsr
+			return p, matchedParams, tsr
 		}
 
 		p = nn
@@ -138,5 +138,5 @@ func (n *node) find(path, method string) (Handle, Params, bool) {
 		tsr = true
 	}
 
-	return p.handlers[method], matchedParams, tsr
+	return p, matchedParams, tsr
 }
