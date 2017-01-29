@@ -27,7 +27,7 @@ func main() {
     })
 
     // path `/a` take precedence over `/:name`
-    r.Get("/:name", func(w http.ResponseWriter, r *http.Request, ps router.Params){
+    r.Get("/a/:name", func(w http.ResponseWriter, r *http.Request, ps router.Params){
         w.Write([]byte("path: /a/b, " + "name: " + ps["name"] + "\n"))
     })
 
