@@ -60,8 +60,12 @@ func (r *Router) Patch(pattern string, handler Handle) {
 }
 
 func (r *Router) Handle(method, pattern string, handler Handle) {
+	if method == "" {
+		panic("invalid http method")
+	}
+
 	if pattern[0] != '/' {
-		panic("path must begin with '/' in path '" + pattern + "'")
+		panic("path must begin with '/', '" + pattern + "'")
 	}
 
 	if r.tree == nil {

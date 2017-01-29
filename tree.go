@@ -46,17 +46,34 @@ func (n *node) insert(pattern string) *node {
 		} else if frag[0] == '*' || frag[0] == ':' {
 			name := frag[1:]
 			if !nameRegexp.MatchString(name) {
-				panic(fmt.Sprintf(`invalid named parameter: "%s"`, pattern))
+				panic(fmt.Sprintf(`invalid named parameter: "%s"`, name))
 			}
 			nn.name = name
 
 			if frag[0] == '*' {
+				if index == len(frags)-1 {
+					for _, v := range p.children {
+						if v.pattern != "/" {
+							panic("/" + pattern + " conflicts with existing pattern " + v.pattern)
+						}
+					}
+				}
 				nn.wildcard = true
+			}
+
+			if frag[0] == ':' {
+				if index == len(frags)-1 {
+					for _, v := range p.children {
+						if v.endpoint && v.pattern != "/" {
+							panic("/" + pattern + " conflicts with existing pattern " + v.pattern)
+						}
+					}
+				}
 			}
 
 			if child := p.parameterChild; child != nil {
 				if child.name != name || child.wildcard != nn.wildcard {
-					panic(fmt.Sprintf(`invalid named parameter: "%s"`, pattern))
+					panic("/" + pattern + " conflicts with existing pattern " + child.pattern)
 				}
 				p = child
 				continue
@@ -64,6 +81,11 @@ func (n *node) insert(pattern string) *node {
 				p.parameterChild = nn
 			}
 		} else {
+			if child := p.parameterChild; child != nil {
+				if child.wildcard || (index == len(frags)-1 && child.endpoint) {
+					panic("/" + pattern + " conflicts with existing pattern " + child.pattern)
+				}
+			}
 			p.children[frag] = nn
 		}
 
@@ -74,7 +96,7 @@ func (n *node) insert(pattern string) *node {
 		}
 
 		if nn.wildcard {
-			panic("can't define path after wildcard pattern")
+			panic(fmt.Sprintf("can't define path after wildcard pattern, %s", pattern))
 		}
 	}
 
@@ -84,7 +106,7 @@ func (n *node) insert(pattern string) *node {
 
 func (n *node) addHandle(method string, handler Handle) {
 	if n.handlers[method] != nil {
-		panic("pattern: " + n.pattern + ", method: " + method + ", conflicts with existing route")
+		panic("/" + n.pattern + ", method: " + method + " handler already exist!")
 	}
 
 	n.handlers[method] = handler
