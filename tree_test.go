@@ -63,10 +63,10 @@ func TestInsert(t *testing.T) {
 		assert.Equal(t, n.name, "", fmt.Sprintf("got params name: %s, expected %s", matched.name, "b"))
 		assert.Equal(t, ps["b"], "name", fmt.Sprintf("name", "got params b: %s, expected %s", ps["b"], "name"))
 
-		n = tree.insert("/a/:b/:c")
-		assert.Equal(t, n, tree.insert("/a/:b/:c"), "same pattern, should return same tree node")
+		n = tree.insert("/:b/:c")
+		assert.Equal(t, n, tree.insert("/:b/:c"), "same pattern, should return same tree node")
 		assert.Equal(t, n.name, "c")
-		matched, ps, _ = tree.find("/a/name/cssivision")
+		matched, ps, _ = tree.find("/name/cssivision")
 		assert.Equal(t, matched, n, "same pattern, should return same tree node")
 		assert.Equal(t, n.name, "c")
 		assert.Equal(t, ps["b"], "name")
@@ -139,11 +139,6 @@ func TestFind(t *testing.T) {
 		assert.Equal(t, matched, n, "same pattern, should return same tree node")
 		assert.Equal(t, ps["b"], "name")
 
-		n = tree.insert("/a/:b/c")
-		matched, ps, _ = tree.find("/a/name/c")
-		assert.Equal(t, matched, n, "same pattern, should return same tree node")
-		assert.Equal(t, ps["b"], "name")
-
 		n = tree.insert("/a/:b/:c")
 		matched, ps, _ = tree.find("/a/name/cssivision")
 		assert.Equal(t, matched, n, "same pattern, should return same tree node")
@@ -153,16 +148,9 @@ func TestFind(t *testing.T) {
 
 	t.Run("test for wildcard pattern", func(t *testing.T) {
 		tree := New().tree
-		n := tree.insert("/*a")
-		matched, ps, _ := tree.find("/a")
-		assert.Equal(t, matched, n, "same pattern, should return same tree node")
-		assert.Equal(t, ps["a"], "a")
-		matched, ps, _ = tree.find("/a/b")
-		assert.Equal(t, matched, n, "same pattern, should return same tree node")
-		assert.Equal(t, ps["a"], "a/b")
 
-		n = tree.insert("/a/*b")
-		matched, ps, _ = tree.find("/a/name")
+		n := tree.insert("/a/*b")
+		matched, ps, _ := tree.find("/a/name")
 		assert.Equal(t, matched, n, "same pattern, should return same tree node")
 		assert.Equal(t, ps["b"], "name")
 		matched, ps, _ = tree.find("/a/name/cssivision")
