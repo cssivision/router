@@ -41,7 +41,7 @@ func TestInsert(t *testing.T) {
 		matched, ps, _ := tree.find("/a/name")
 
 		assert.Equal(t, ps["b"], "name", fmt.Sprintf("got params b: %s, expected %s", ps["b"], "name"))
-		assert.Equal(t, n, matched, fmt.Sprintf("same pattern, should return same tree node"))
+		assert.Equal(t, n, matched, "same pattern, should return same tree node")
 		assert.Equal(t, matched.name, "b", fmt.Sprintf("got params name: %s, expected %s", matched.name, "b"))
 		assert.Panics(t, func() {
 			tree.insert("/:$~!")
@@ -56,6 +56,21 @@ func TestInsert(t *testing.T) {
 			tree.insert("/a/:b/c")
 			tree.insert("/a/:x/c")
 		})
+
+		n = tree.insert("/a/:b/c")
+		matched, ps, _ = tree.find("/a/name/c")
+		assert.Equal(t, n, matched, "same pattern, should return same tree node")
+		assert.Equal(t, n.name, "", fmt.Sprintf("got params name: %s, expected %s", matched.name, "b"))
+		assert.Equal(t, ps["b"], "name", fmt.Sprintf("name", "got params b: %s, expected %s", ps["b"], "name"))
+
+		n = tree.insert("/a/:b/:c")
+		assert.Equal(t, n, tree.insert("/a/:b/:c"), "same pattern, should return same tree node")
+		assert.Equal(t, n.name, "c")
+		matched, ps, _ = tree.find("/a/name/cssivision")
+		assert.Equal(t, matched, n, "same pattern, should return same tree node")
+		assert.Equal(t, n.name, "c")
+		assert.Equal(t, ps["b"], "name")
+		assert.Equal(t, ps["c"], "cssivision")
 	})
 
 	t.Run("test for wildcard pattern", func(t *testing.T) {
@@ -74,9 +89,84 @@ func TestInsert(t *testing.T) {
 		assert.Panics(t, func() {
 			tree.insert("/a/*c")
 		})
+		assert.Panics(t, func() {
+			tree.insert("/a/:c")
+		})
+
+		p := tree.insert("/a")
+		assert.Equal(t, p.name, "")
+		assert.False(t, p.wildcard)
+		assert.Equal(t, p.parameterChild, n)
 	})
 }
 
 func TestFind(t *testing.T) {
+	t.Run("test for path /", func(t *testing.T) {
+		tree := New().tree
+		n := tree.insert("/")
+		p, params, _ := tree.find("/")
+		assert.Equal(t, p, n)
+		assert.Nil(t, params)
+		assert.Panics(t, func() {
+			tree.find("")
+		})
+		nn, _, _ := tree.find("/a")
+		assert.Nil(t, nn)
+	})
 
+	t.Run("test for simple pattern", func(t *testing.T) {
+		tree := New().tree
+		n := tree.insert("/a/b")
+		p, _, _ := tree.find("/a/b")
+		assert.Equal(t, p, n)
+		p, _, _ = tree.find("/a/c")
+		assert.Nil(t, p)
+		p, _, _ = tree.find("/a")
+		assert.Equal(t, 0, len(p.handlers))
+		p, _, _ = tree.find("/a/b/c")
+		assert.Nil(t, p)
+	})
+
+	t.Run("test for named pattern", func(t *testing.T) {
+		tree := New().tree
+		n := tree.insert("/:b")
+		matched, ps, _ := tree.find("/a")
+		assert.Equal(t, matched, n, "same pattern, should return same tree node")
+		assert.Equal(t, ps["b"], "a")
+
+		n = tree.insert("/a/:b")
+		matched, ps, _ = tree.find("/a/name")
+		assert.Equal(t, matched, n, "same pattern, should return same tree node")
+		assert.Equal(t, ps["b"], "name")
+
+		n = tree.insert("/a/:b/c")
+		matched, ps, _ = tree.find("/a/name/c")
+		assert.Equal(t, matched, n, "same pattern, should return same tree node")
+		assert.Equal(t, ps["b"], "name")
+
+		n = tree.insert("/a/:b/:c")
+		matched, ps, _ = tree.find("/a/name/cssivision")
+		assert.Equal(t, matched, n, "same pattern, should return same tree node")
+		assert.Equal(t, ps["b"], "name")
+		assert.Equal(t, ps["c"], "cssivision")
+	})
+
+	t.Run("test for wildcard pattern", func(t *testing.T) {
+		tree := New().tree
+		n := tree.insert("/*a")
+		matched, ps, _ := tree.find("/a")
+		assert.Equal(t, matched, n, "same pattern, should return same tree node")
+		assert.Equal(t, ps["a"], "a")
+		matched, ps, _ = tree.find("/a/b")
+		assert.Equal(t, matched, n, "same pattern, should return same tree node")
+		assert.Equal(t, ps["a"], "a/b")
+
+		n = tree.insert("/a/*b")
+		matched, ps, _ = tree.find("/a/name")
+		assert.Equal(t, matched, n, "same pattern, should return same tree node")
+		assert.Equal(t, ps["b"], "name")
+		matched, ps, _ = tree.find("/a/name/cssivision")
+		assert.Equal(t, matched, n, "same pattern, should return same tree node")
+		assert.Equal(t, ps["b"], "name/cssivision")
+	})
 }

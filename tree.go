@@ -68,7 +68,6 @@ func (n *node) insert(pattern string) *node {
 		}
 
 		p = nn
-
 		if index == len(frags)-1 {
 			nn.endpoint = true
 			continue
@@ -113,18 +112,16 @@ func (n *node) find(path string) (*node, Params, bool) {
 			if p.endpoint && index == len(frags)-1 && frag == "" {
 				tsr = true
 			}
-			return p, matchedParams, tsr
+			return nn, matchedParams, tsr
 		}
 
 		p = nn
-
 		if p.name != "" {
 			if matchedParams == nil {
 				matchedParams = make(map[string]string)
 			}
 
 			if p.wildcard {
-				fmt.Println(strings.Join(frags[index:], "/"))
 				matchedParams[p.name] = strings.Join(frags[index:], "/")
 				break
 			} else {
