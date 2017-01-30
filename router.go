@@ -88,7 +88,11 @@ func (r *Router) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	n, ps, tsr := r.tree.find(pattern)
-	handle := n.handlers[req.Method]
+	var handle Handle
+	if n != nil {
+		handle = n.handlers[req.Method]
+	}
+
 	if handle != nil {
 		handle(rw, req, ps)
 		return

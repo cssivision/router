@@ -122,7 +122,7 @@ func TestFind(t *testing.T) {
 		p, _, _ = tree.find("/a/c")
 		assert.Nil(t, p)
 		p, _, _ = tree.find("/a")
-		assert.Equal(t, 0, len(p.handlers))
+		assert.Nil(t, p)
 		p, _, _ = tree.find("/a/b/c")
 		assert.Nil(t, p)
 	})

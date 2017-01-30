@@ -125,6 +125,15 @@ func (n *node) find(path string) (*node, Params, bool) {
 	p := n
 	for index, frag := range frags {
 		nn := p.children[frag]
+		if nn != nil && nn.children[""] != nil && index == len(frags)-1 {
+			// TrailingSlashRedirect: /a/b -> /a/b/
+			tsr = true
+		}
+
+		if index == len(frags)-1 && nn != nil && !nn.endpoint {
+			nn = nil
+		}
+
 		if nn == nil {
 			nn = p.parameterChild
 		}
