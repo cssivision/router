@@ -44,7 +44,7 @@ func main() {
 }
 ```
 
-# Named parameters
+## Named parameters
 Named parameters only match a single path segment:
 ```
 Pattern: /user/:name
@@ -61,7 +61,7 @@ Pattern: /:user/:name
  /user/gordon/profile      no match
  /user/                    no match
 ```
-# Wildcard parameters
+## Wildcard parameters
 Match everything, therefore they must always be at the end of the pattern:
 
 ```
@@ -71,11 +71,11 @@ Pattern: /src/*filepath
  /src/somefile.go          match
  /src/subdir/somefile.go   match
  ```
-# Trailing slash redirect
+## Trailing slash redirect
 * TrailingSlashRedirect: /a/b/ -> /a/b
 * TrailingSlashRedirect: /a/b -> /a/b/
 
-# Case sensitive
+## Case sensitive
 * `IgnoreCase = true`: /A/B/ -> /a/b
 * `IgnoreCase = true`: case sensitive
 
