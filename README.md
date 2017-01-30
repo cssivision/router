@@ -1,6 +1,12 @@
 # Introduction
 Router is a minimalist HTTP request router for [Go](https://golang.org/).
 
+# Feature
+* Named parameters
+* Wildcard parameters
+* Trailing slash redirect
+* Case sensitive
+
 # Installation
 ```sh
 go get github.com/cssivision/router
@@ -38,5 +44,38 @@ func main() {
 }
 ```
 
-# Pattern
-## :
+# Named parameters
+Named parameters only match a single path segment:
+```
+Pattern: /user/:name
+
+ /user/gordon              match
+ /user/you                 match
+ /user/gordon/profile      no match
+ /user/                    no match
+
+Pattern: /:user/:name
+
+ /a/gordon                 match
+ /b/you                    match
+ /user/gordon/profile      no match
+ /user/                    no match
+```
+# Wildcard parameters
+Match everything, therefore they must always be at the end of the pattern:
+
+```
+Pattern: /src/*filepath
+
+ /src/                     match
+ /src/somefile.go          match
+ /src/subdir/somefile.go   match
+ ```
+# Trailing slash redirect
+* TrailingSlashRedirect: /a/b/ -> /a/b
+* TrailingSlashRedirect: /a/b -> /a/b/
+
+# Case sensitive
+* `IgnoreCase = true`: /A/B/ -> /a/b
+* `IgnoreCase = true`: case sensitive
+
