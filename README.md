@@ -30,10 +30,6 @@ func main() {
         w.Write([]byte("path: /a/b, " + "name: " + ps["name"] + "\n"))
     })
 
-    r.Get("/a/b", func(w http.ResponseWriter, r *http.Request, ps router.Params){
-        w.Write([]byte("path /a/b\n"))
-    })
-
     r.Get("/file/*filepath", func(w http.ResponseWriter, r *http.Request, ps router.Params){
         w.Write([]byte("path: /a/b, " + "filepath: " + ps["filepath"] + "\n"))
     })
