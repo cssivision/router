@@ -77,5 +77,5 @@ Pattern: /src/*filepath
 
 ## Case sensitive
 * `IgnoreCase = true`: /A/B/ -> /a/b
-* `IgnoreCase = true`: case sensitive
+* `IgnoreCase = false`: case sensitive
 
