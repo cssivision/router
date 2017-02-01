@@ -6,6 +6,7 @@ Router is a minimalist HTTP request router for [Go](https://golang.org/).
 * Wildcard parameters
 * Trailing slash redirect
 * Case sensitive
+* Prefix support
 
 # Installation
 ```sh
