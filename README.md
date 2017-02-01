@@ -14,6 +14,7 @@ go get github.com/cssivision/router
 
 # Usage
 
+## simple pattern
 ```go
 package main
 
@@ -25,22 +26,74 @@ import (
 func main() {
     r := router.New()
     r.Get("/", func(w http.ResponseWriter, r *http.Request, ps router.Params){
-        w.Write([]byte("path /\n"))
+        w.Write([]byte("index\n"))
     })
 
-    r.Get("/a", func(w http.ResponseWriter, r *http.Request, ps router.Params){
-        w.Write([]byte("path /a\n"))
+    r.Get("/a/b", func(w http.ResponseWriter, r *http.Request, ps router.Params){
+        w.Write([]byte("hello world!\n"))
     })
+
+    http.ListenAndServe(":8080", r)
+}
+```
+## named pattern
+```go
+package main
+
+import (
+    "net/http"
+    "github.com/cssivision/router"
+)
+
+func main() {
+    r := router.New()
 
     r.Get("/a/:name", func(w http.ResponseWriter, r *http.Request, ps router.Params){
         w.Write([]byte("path: /a/b, " + "name: " + ps["name"] + "\n"))
     })
+
+    http.ListenAndServe(":8080", r)
+}
+```
+
+## wildcard pattern
+```go
+package main
+
+import (
+    "net/http"
+    "github.com/cssivision/router"
+)
+
+func main() {
+    r := router.New()
 
     r.Get("/file/*filepath", func(w http.ResponseWriter, r *http.Request, ps router.Params){
         w.Write([]byte("path: /a/b, " + "filepath: " + ps["filepath"] + "\n"))
     })
 
     http.ListenAndServe(":8080", r)
+}
+```
+
+## prefix pattern
+```go
+package main
+
+import (
+    "net/http"
+    "github.com/cssivision/router"
+)
+
+func main() {
+    r := router.New()
+    v1 := router.Prefix("/api/v1")
+
+    v1.Get("/file/*filepath", func(w http.ResponseWriter, r *http.Request, ps router.Params){
+        w.Write([]byte("path: /a/b, " + "filepath: " + ps["filepath"] + "\n"))
+    })
+
+    http.ListenAndServe(":8080", v1)
 }
 ```
 

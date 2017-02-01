@@ -10,6 +10,7 @@ type Router struct {
 	IgnoreCase            bool
 	TrailingSlashRedirect bool
 	NotFound              http.Handler
+	BasePath              string
 }
 
 type Handle func(http.ResponseWriter, *http.Request, Params)
@@ -59,6 +60,28 @@ func (r *Router) Patch(pattern string, handler Handle) {
 	r.Handle(http.MethodPatch, pattern, handler)
 }
 
+func (r *Router) Prefix(prefix string) *Router {
+	if prefix == "" {
+		panic("prefix can not be empty")
+	}
+
+	if prefix[0] != '/' {
+		panic("prefix must begin with /")
+	}
+
+	if strings.HasSuffix(prefix, "/") {
+		prefix = strings.TrimSuffix(prefix, "/")
+	}
+
+	return &Router{
+		BasePath:              prefix,
+		tree:                  r.tree,
+		IgnoreCase:            r.IgnoreCase,
+		TrailingSlashRedirect: r.TrailingSlashRedirect,
+		NotFound:              r.NotFound,
+	}
+}
+
 func (r *Router) Handle(method, pattern string, handler Handle) {
 	if method == "" {
 		panic("invalid http method")
@@ -73,6 +96,10 @@ func (r *Router) Handle(method, pattern string, handler Handle) {
 			children: make(map[string]*node),
 			handlers: make(map[string]Handle),
 		}
+	}
+
+	if r.BasePath != "" {
+		pattern = r.BasePath + pattern
 	}
 
 	if r.IgnoreCase {
