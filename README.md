@@ -50,7 +50,7 @@ func main() {
     r := router.New()
 
     r.Get("/a/:name", func(w http.ResponseWriter, r *http.Request, ps router.Params){
-        w.Write([]byte("path: /a/b, " + "name: " + ps["name"] + "\n"))
+        w.Write([]byte("path: /a/:name, " + "name: " + ps["name"] + "\n"))
     })
 
     http.ListenAndServe(":8080", r)
@@ -70,7 +70,7 @@ func main() {
     r := router.New()
 
     r.Get("/file/*filepath", func(w http.ResponseWriter, r *http.Request, ps router.Params){
-        w.Write([]byte("path: /a/b, " + "filepath: " + ps["filepath"] + "\n"))
+        w.Write([]byte("path: /file/*filepath, " + "filepath: " + ps["filepath"] + "\n"))
     })
 
     http.ListenAndServe(":8080", r)
@@ -91,7 +91,7 @@ func main() {
     v1 := router.Prefix("/api/v1")
 
     v1.Get("/file/*filepath", func(w http.ResponseWriter, r *http.Request, ps router.Params){
-        w.Write([]byte("path: /a/b, " + "filepath: " + ps["filepath"] + "\n"))
+        w.Write([]byte("path: /file/*filepat, " + "filepath: " + ps["filepath"] + "\n"))
     })
 
     http.ListenAndServe(":8080", v1)
