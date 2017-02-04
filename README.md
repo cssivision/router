@@ -88,13 +88,18 @@ import (
 
 func main() {
     r := router.New()
-    v1 := router.Prefix("/api/v1")
 
-    v1.Get("/file/*filepath", func(w http.ResponseWriter, r *http.Request, ps router.Params){
-        w.Write([]byte("path: /a/b, " + "filepath: " + ps["filepath"] + "\n"))
+    v1 := r.Prefix("/api/v1")
+    v1.Get("/a", func(w http.ResponseWriter, r *http.Request, ps router.Params){
+        w.Write([]byte("api v1\n"))
     })
 
-    http.ListenAndServe(":8080", v1)
+    v2 := r.Prefix("/api/v2")
+    v2.Get("/a", func(w http.ResponseWriter, r *http.Request, ps router.Params){
+        w.Write([]byte("api v2\n"))
+    })
+
+    http.ListenAndServe(":8080", r)
 }
 ```
 
