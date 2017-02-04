@@ -22,9 +22,6 @@ type Router struct {
 	// Configurable http.Handler which is called when no matching route is
 	// found. If it is not set, http.NotFound is used.
 	NotFound http.Handler
-
-	// Prefix path of a router
-	BasePath string
 }
 
 // Handle is a function that can be registered to a route to handle HTTP
@@ -88,7 +85,7 @@ func (r *Router) Patch(pattern string, handler Handle) {
 }
 
 // Add prefix for a router, and return a new one
-func (r *Router) Prefix(prefix string) *Router {
+func (r *Router) Prefix(prefix string) *RouterPrefix {
 	if prefix == "" {
 		panic("prefix can not be empty")
 	}
@@ -97,16 +94,11 @@ func (r *Router) Prefix(prefix string) *Router {
 		panic("prefix must begin with /")
 	}
 
-	if strings.HasSuffix(prefix, "/") {
-		prefix = strings.TrimSuffix(prefix, "/")
-	}
+	prefix = strings.TrimSuffix(prefix, "/")
 
-	return &Router{
-		BasePath:              prefix,
-		tree:                  r.tree,
-		IgnoreCase:            r.IgnoreCase,
-		TrailingSlashRedirect: r.TrailingSlashRedirect,
-		NotFound:              r.NotFound,
+	return &RouterPrefix{
+		BasePath: prefix,
+		Router:   r,
 	}
 }
 
@@ -127,10 +119,6 @@ func (r *Router) Handle(method, pattern string, handler Handle) {
 			children: make(map[string]*node),
 			handlers: make(map[string]Handle),
 		}
-	}
-
-	if r.BasePath != "" {
-		pattern = r.BasePath + pattern
 	}
 
 	if r.IgnoreCase {
