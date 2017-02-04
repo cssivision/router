@@ -88,7 +88,7 @@ import (
 
 func main() {
     r := router.New()
-    v1 := router.Prefix("/api/v1")
+    v1 := r.Prefix("/api/v1")
 
     v1.Get("/file/*filepath", func(w http.ResponseWriter, r *http.Request, ps router.Params){
         w.Write([]byte("path: /file/*filepat, " + "filepath: " + ps["filepath"] + "\n"))
