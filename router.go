@@ -8,6 +8,9 @@ import (
 // Router is a http.Handler which can be used to dispatch requests to different
 // handler functions via configurable routes
 type Router struct {
+	RouterPrefix
+
+	// tree used to keep handler with path
 	tree *node
 
 	// Ignore case when matching URL path.
@@ -34,96 +37,20 @@ type Params map[string]string
 
 // New returns a new initialized Router, with default configuration
 func New() *Router {
-	return &Router{
+	router := &Router{
+		RouterPrefix: RouterPrefix{
+			BasePath: "",
+		},
 		tree: &node{
 			children: make(map[string]*node),
 			handlers: make(map[string]Handle),
 		},
 		TrailingSlashRedirect: true,
 	}
-}
 
-// Get is a shortcut for router.Handle("GET", path, handle)
-func (r *Router) Get(pattern string, handler Handle) {
-	r.Handle(http.MethodGet, pattern, handler)
-}
+	router.RouterPrefix.Router = router
 
-// Post is a shortcut for router.Handle("POST", path, handle)
-func (r *Router) Post(pattern string, handler Handle) {
-	r.Handle(http.MethodPost, pattern, handler)
-}
-
-// Put is a shortcut for router.Handle("PUT", path, handle)
-func (r *Router) Put(pattern string, handler Handle) {
-	r.Handle(http.MethodPut, pattern, handler)
-}
-
-// Delete is a shortcut for router.Handle("DELETE", path, handle)
-func (r *Router) Delete(pattern string, handler Handle) {
-	r.Handle(http.MethodDelete, pattern, handler)
-}
-
-// Options is a shortcut for router.Handle("OPTIONS", path, handle)
-func (r *Router) Options(pattern string, handler Handle) {
-	r.Handle(http.MethodOptions, pattern, handler)
-}
-
-// Trace is a shortcut for router.Handle("TRACE", path, handle)
-func (r *Router) Trace(pattern string, handler Handle) {
-	r.Handle(http.MethodTrace, pattern, handler)
-}
-
-// Head is a shortcut for router.Handle("HEAD", path, handle)
-func (r *Router) Head(pattern string, handler Handle) {
-	r.Handle(http.MethodHead, pattern, handler)
-}
-
-// Patch is a shortcut for router.Handle("PATCH", path, handle)
-func (r *Router) Patch(pattern string, handler Handle) {
-	r.Handle(http.MethodPatch, pattern, handler)
-}
-
-// Add prefix for a router, and return a new one
-func (r *Router) Prefix(prefix string) *RouterPrefix {
-	if prefix == "" {
-		panic("prefix can not be empty")
-	}
-
-	if prefix[0] != '/' {
-		panic("prefix must begin with /")
-	}
-
-	prefix = strings.TrimSuffix(prefix, "/")
-
-	return &RouterPrefix{
-		BasePath: prefix,
-		Router:   r,
-	}
-}
-
-// Handle registers a new request handle with the given path and method.
-// For GET, POST, PUT, PATCH and DELETE requests the respective shortcut
-// functions can be used.
-func (r *Router) Handle(method, pattern string, handler Handle) {
-	if method == "" {
-		panic("invalid http method")
-	}
-
-	if pattern[0] != '/' {
-		panic("path must begin with '/', '" + pattern + "'")
-	}
-
-	if r.tree == nil {
-		r.tree = &node{
-			children: make(map[string]*node),
-			handlers: make(map[string]Handle),
-		}
-	}
-
-	if r.IgnoreCase {
-		pattern = strings.ToLower(pattern)
-	}
-	r.tree.insert(pattern).addHandle(method, handler)
+	return router
 }
 
 // ServeHTTP makes the router implement the http.Handler interface.
