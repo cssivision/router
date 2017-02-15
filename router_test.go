@@ -69,6 +69,7 @@ func TestRouter(t *testing.T) {
 
 func TestIgnoreCase(t *testing.T) {
 	router := New()
+	router.IgnoreCase = true
 	serverResponse := "server response"
 	serverStatus := 200
 	router.Get("/a/b", func(rw http.ResponseWriter, req *http.Request, _ Params) {

@@ -39,7 +39,6 @@ func New() *Router {
 			children: make(map[string]*node),
 			handlers: make(map[string]Handle),
 		},
-		IgnoreCase:            true,
 		TrailingSlashRedirect: true,
 	}
 }
@@ -130,8 +129,9 @@ func (r *Router) Handle(method, pattern string, handler Handle) {
 // ServeHTTP makes the router implement the http.Handler interface.
 func (r *Router) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	var pattern string
+	pattern = req.URL.String()
 	if r.IgnoreCase {
-		pattern = strings.ToLower(req.URL.String())
+		pattern = strings.ToLower(pattern)
 	}
 
 	n, ps, tsr := r.tree.find(pattern)
