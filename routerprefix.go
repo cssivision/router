@@ -7,10 +7,10 @@ import (
 
 // RouterPrefix
 type RouterPrefix struct {
-	Router *Router
+	router *Router
 
 	// Prefix path of a router
-	BasePath string
+	basePath string
 }
 
 // Get is a shortcut for router.Handle("GET", path, handle) with BasePath
@@ -55,10 +55,17 @@ func (r *RouterPrefix) Patch(pattern string, handler Handle) {
 
 // Add prefix for a router, and return a new one with BasePath
 func (r *RouterPrefix) Prefix(prefix string) *RouterPrefix {
+	if prefix == "" {
+		panic("prefix must begin with '/', '" + prefix + "'")
+	}
+
+	if prefix[0] != '/' {
+		panic("prefix must start with '/', '" + prefix + "'")
+	}
 
 	return &RouterPrefix{
-		BasePath: prefix,
-		Router:   r.Router,
+		basePath: prefix,
+		router:   r.router,
 	}
 }
 
@@ -66,29 +73,28 @@ func (r *RouterPrefix) Prefix(prefix string) *RouterPrefix {
 // For GET, POST, PUT, PATCH and DELETE requests the respective shortcut
 // functions can be used.
 func (r *RouterPrefix) Handle(method, pattern string, handler Handle) {
-	if r.BasePath != "" {
-		pattern = r.BasePath + pattern
+	if pattern[0] != '/' {
+		panic("path must begin with '/', '" + pattern + "'")
 	}
 
-	// r.Router.Handle(method, pattern, handler)
+	if r.basePath != "" {
+		pattern = r.basePath + pattern
+	}
 
 	if method == "" {
 		panic("invalid http method")
 	}
 
-	if pattern[0] != '/' {
-		panic("path must begin with '/', '" + pattern + "'")
-	}
-
-	if r.Router.tree == nil {
-		r.Router.tree = &node{
+	router := r.router
+	if router.tree == nil {
+		router.tree = &node{
 			children: make(map[string]*node),
 			handlers: make(map[string]Handle),
 		}
 	}
 
-	if r.Router.IgnoreCase {
+	if router.IgnoreCase {
 		pattern = strings.ToLower(pattern)
 	}
-	r.Router.tree.insert(pattern).addHandle(method, handler)
+	router.tree.insert(pattern).addHandle(method, handler)
 }

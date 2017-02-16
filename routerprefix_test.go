@@ -13,6 +13,14 @@ func TestPrefix(t *testing.T) {
 	serverResponse := "server response"
 	serverStatus := 200
 
+	assert.Panics(t, func() {
+		router.Prefix("a")
+	})
+
+	assert.Panics(t, func() {
+		router.Prefix("")
+	})
+
 	v1 := router.Prefix("/api/v1")
 	v1.Get("/a/b", func(rw http.ResponseWriter, req *http.Request, _ Params) {
 		rw.WriteHeader(serverStatus)

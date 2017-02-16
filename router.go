@@ -39,7 +39,7 @@ type Params map[string]string
 func New() *Router {
 	router := &Router{
 		RouterPrefix: RouterPrefix{
-			BasePath: "",
+			basePath: "",
 		},
 		tree: &node{
 			children: make(map[string]*node),
@@ -48,7 +48,7 @@ func New() *Router {
 		TrailingSlashRedirect: true,
 	}
 
-	router.RouterPrefix.Router = router
+	router.RouterPrefix.router = router
 
 	return router
 }
