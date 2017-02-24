@@ -145,14 +145,15 @@ func TestTrailingSlashRedirect(t *testing.T) {
 	})
 }
 
-func TestNotFound(t *testing.T) {
+func TestNoRoute(t *testing.T) {
 	router := New()
 	serverResponse := "server response"
 	serverStatus := 200
-	router.NotFound = http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+	router.NoRoute = http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
 		rw.WriteHeader(serverStatus)
 		rw.Write([]byte(serverResponse))
 	})
+	router.Get("/a", func(rw http.ResponseWriter, req *http.Request, _ Params) {})
 
 	server := httptest.NewServer(router)
 	defer server.Close()
@@ -167,7 +168,43 @@ func TestNotFound(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	assert.Equal(t, serverResponse, string(bodyBytes))
+}
+
+func TestNoMethod(t *testing.T) {
+	router := New()
+	serverResponse := "server response"
+	serverStatus := 200
+	router.NoMethod = http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
+		rw.WriteHeader(serverStatus)
+		rw.Write([]byte(serverResponse))
+	})
+	router.Get("/a/b", func(rw http.ResponseWriter, req *http.Request, _ Params) {})
+
+	server := httptest.NewServer(router)
+	defer server.Close()
+	serverURL := server.URL
+	resp, err := http.Post(serverURL+"/a/b", "", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, serverStatus, resp.StatusCode)
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
 	assert.Equal(t, string(bodyBytes), serverResponse)
+	resp.Body.Close()
+
+	router.NoMethod = nil
+	resp, err = http.Post(serverURL+"/a/b", "", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
+	resp.Body.Close()
 }
 
 func TestSamePatternWidthDifferentMethod(t *testing.T) {

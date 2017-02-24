@@ -96,5 +96,9 @@ func (r *RouterPrefix) Handle(method, pattern string, handler Handle) {
 	if router.IgnoreCase {
 		pattern = strings.ToLower(pattern)
 	}
+
+	if !router.allowMethods[method] {
+		router.allowMethods[method] = true
+	}
 	router.tree.insert(pattern).addHandle(method, handler)
 }

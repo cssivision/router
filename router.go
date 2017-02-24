@@ -24,7 +24,13 @@ type Router struct {
 
 	// Configurable http.Handler which is called when no matching route is
 	// found. If it is not set, http.NotFound is used.
-	NotFound http.Handler
+	NoRoute http.Handler
+
+	// Configurable http.Handler which is called when method is not allowed. If it is not set, http.NotFound is used.
+	NoMethod http.Handler
+
+	// Methods which has been registered
+	allowMethods map[string]bool
 }
 
 // Handle is a function that can be registered to a route to handle HTTP
@@ -46,6 +52,7 @@ func New() *Router {
 			handlers: make(map[string]Handle),
 		},
 		TrailingSlashRedirect: true,
+		allowMethods:          make(map[string]bool),
 	}
 
 	router.RouterPrefix.router = router
@@ -55,6 +62,15 @@ func New() *Router {
 
 // ServeHTTP makes the router implement the http.Handler interface.
 func (r *Router) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	if !r.allowMethods[req.Method] {
+		if r.NoMethod != nil {
+			r.NoMethod.ServeHTTP(rw, req)
+		} else {
+			http.NotFound(rw, req)
+		}
+		return
+	}
+
 	var pattern string
 	pattern = req.URL.String()
 	if r.IgnoreCase {
@@ -87,8 +103,8 @@ func (r *Router) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	if r.NotFound != nil {
-		r.NotFound.ServeHTTP(rw, req)
+	if r.NoRoute != nil {
+		r.NoRoute.ServeHTTP(rw, req)
 	} else {
 		http.NotFound(rw, req)
 	}
