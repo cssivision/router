@@ -5,6 +5,8 @@ import (
 	"strings"
 )
 
+var default405Body = []byte("405 method not allowed")
+
 // Router is a http.Handler which can be used to dispatch requests to different
 // handler functions via configurable routes
 type Router struct {
@@ -66,7 +68,8 @@ func (r *Router) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		if r.NoMethod != nil {
 			r.NoMethod.ServeHTTP(rw, req)
 		} else {
-			http.NotFound(rw, req)
+			rw.WriteHeader(http.StatusMethodNotAllowed)
+			rw.Write(default405Body)
 		}
 		return
 	}

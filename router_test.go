@@ -203,7 +203,12 @@ func TestNoMethod(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
+	assert.Equal(t, http.StatusMethodNotAllowed, resp.StatusCode)
+	bodyBytes, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, default405Body, bodyBytes)
 	resp.Body.Close()
 }
 
