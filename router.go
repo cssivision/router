@@ -75,7 +75,7 @@ func (r *Router) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	var pattern string
-	pattern = req.URL.String()
+	pattern = req.URL.Path
 	if r.IgnoreCase {
 		pattern = strings.ToLower(pattern)
 	}
