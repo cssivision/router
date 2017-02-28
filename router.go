@@ -95,6 +95,8 @@ func (r *Router) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	if r.TrailingSlashRedirect {
 		if len(path) > 1 && path[len(path)-1] == '/' {
 			req.URL.Path = path[:len(path)-1]
+		} else if len(path) == 1 {
+			// do nothing
 		} else {
 			req.URL.Path = path + "/"
 		}
