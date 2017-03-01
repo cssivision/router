@@ -92,20 +92,17 @@ func (r *Router) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	path := req.URL.Path
-	if r.TrailingSlashRedirect {
+	if r.TrailingSlashRedirect && tsr {
 		if len(path) > 1 && path[len(path)-1] == '/' {
-			req.URL.Path = path[:len(path)-1]
+			pattern = path[:len(path)-1]
 		} else if len(path) == 1 {
 			// do nothing
 		} else {
-			req.URL.Path = path + "/"
+			pattern = path + "/"
 		}
 
-		if tsr {
-			pattern = req.URL.Path
-			http.Redirect(rw, req, pattern, http.StatusMovedPermanently)
-			return
-		}
+		http.Redirect(rw, req, pattern, http.StatusMovedPermanently)
+		return
 	}
 
 	if r.NoRoute != nil {
