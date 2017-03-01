@@ -102,7 +102,7 @@ func (r *Router) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		}
 
 		if tsr {
-			pattern = strings.ToLower(req.URL.String())
+			pattern = req.URL.Path
 			http.Redirect(rw, req, pattern, http.StatusMovedPermanently)
 			return
 		}
