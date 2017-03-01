@@ -119,7 +119,7 @@ func TestTrailingSlashRedirect(t *testing.T) {
 		assert.Equal(t, string(bodyBytes), serverResponse)
 	})
 
-	t.Run("with slash", func(t *testing.T) {
+	t.Run("without slash", func(t *testing.T) {
 		router := New()
 		serverResponse := "server response"
 		serverStatus := 200
@@ -132,6 +132,60 @@ func TestTrailingSlashRedirect(t *testing.T) {
 		defer server.Close()
 		serverURL := server.URL
 		resp, err := http.Get(serverURL + "/a/b/")
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer resp.Body.Close()
+		assert.Equal(t, resp.StatusCode, serverStatus)
+		bodyBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, string(bodyBytes), serverResponse)
+	})
+}
+
+func TestTrailingSlashRedirectAndIgnoreCase(t *testing.T) {
+	t.Run("with slash", func(t *testing.T) {
+		router := New()
+		serverResponse := "server response"
+		serverStatus := 200
+		router.IgnoreCase = true
+		router.Get("/a/b/", func(rw http.ResponseWriter, req *http.Request, _ Params) {
+			rw.WriteHeader(serverStatus)
+			rw.Write([]byte(serverResponse))
+		})
+
+		server := httptest.NewServer(router)
+		defer server.Close()
+		serverURL := server.URL
+		resp, err := http.Get(serverURL + "/A/b")
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer resp.Body.Close()
+		assert.Equal(t, resp.StatusCode, serverStatus)
+		bodyBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, string(bodyBytes), serverResponse)
+	})
+
+	t.Run("without slash", func(t *testing.T) {
+		router := New()
+		serverResponse := "server response"
+		serverStatus := 200
+		router.IgnoreCase = true
+		router.Get("/a/b", func(rw http.ResponseWriter, req *http.Request, _ Params) {
+			rw.WriteHeader(serverStatus)
+			rw.Write([]byte(serverResponse))
+		})
+
+		server := httptest.NewServer(router)
+		defer server.Close()
+		serverURL := server.URL
+		resp, err := http.Get(serverURL + "/A/b/")
 		if err != nil {
 			t.Fatal(err)
 		}
