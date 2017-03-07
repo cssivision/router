@@ -58,12 +58,40 @@ func New() *Router {
 	}
 
 	router.RouterPrefix.router = router
-
 	return router
 }
 
 // ServeHTTP makes the router implement the http.Handler interface.
 func (r *Router) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	pattern := req.URL.Path
+	if r.IgnoreCase {
+		pattern = strings.ToLower(pattern)
+	}
+
+	// handle for matched request
+	n, ps, tsr := r.tree.find(pattern)
+	if n != nil {
+		if handler := n.handlers[req.Method]; handler != nil {
+			handler(rw, req, ps)
+			return
+		}
+	} else {
+		// handle for trailing slash redirect
+		if r.TrailingSlashRedirect && tsr {
+			path := req.URL.Path
+			if len(path) > 1 && path[len(path)-1] == '/' {
+				pattern = path[:len(path)-1]
+			} else if len(path) == 1 {
+				// do nothing
+			} else {
+				pattern = path + "/"
+			}
+
+			http.Redirect(rw, req, pattern, http.StatusMovedPermanently)
+			return
+		}
+	}
+
 	if !r.allowMethods[req.Method] {
 		if r.NoMethod != nil {
 			r.NoMethod.ServeHTTP(rw, req)
@@ -71,37 +99,6 @@ func (r *Router) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			rw.WriteHeader(http.StatusMethodNotAllowed)
 			rw.Write(default405Body)
 		}
-		return
-	}
-
-	var pattern string
-	pattern = req.URL.Path
-	if r.IgnoreCase {
-		pattern = strings.ToLower(pattern)
-	}
-
-	n, ps, tsr := r.tree.find(pattern)
-	var handle Handle
-	if n != nil {
-		handle = n.handlers[req.Method]
-	}
-
-	if handle != nil {
-		handle(rw, req, ps)
-		return
-	}
-
-	path := req.URL.Path
-	if r.TrailingSlashRedirect && tsr {
-		if len(path) > 1 && path[len(path)-1] == '/' {
-			pattern = path[:len(path)-1]
-		} else if len(path) == 1 {
-			// do nothing
-		} else {
-			pattern = path + "/"
-		}
-
-		http.Redirect(rw, req, pattern, http.StatusMovedPermanently)
 		return
 	}
 
