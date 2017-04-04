@@ -138,3 +138,6 @@ Pattern: /src/*filepath
 * `IgnoreCase = true`: /A/B/ -> /a/b
 * `IgnoreCase = false`: case sensitive
 
+# Licenses
+
+All source code is licensed under the [MIT License](https://github.com/cssivision/router/blob/master/LICENSE).
